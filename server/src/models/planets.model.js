@@ -35,7 +35,7 @@ const loadPlanetsData = () => {
   });
 };
 
-const getAllPlanets = async () => await planets.find({});
+const getAllPlanets = async () => await planets.find({}, "-_id -__v");
 
 const savePlanet = async (planet) => {
   try {
