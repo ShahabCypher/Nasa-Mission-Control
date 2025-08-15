@@ -1,7 +1,9 @@
 const {
   getAllLaunches,
   getHistoryLaunches,
+  getUpcomingLaunches,
   getHistoryLaunchesCount,
+  getUpcomingLaunchesCount,
   scheduleNewLaunch,
   existsLaunchWithId,
   abortLaunchById,
@@ -28,6 +30,22 @@ const httpGetAllLaunches = async (req, res) => {
 const httpGetHistoryLaunches = async (req, res) => {
   const { skip, limit } = getPagination(req.query);
   const result = await getHistoryLaunches(skip, limit);
+
+  if (limit) {
+    return res.status(200).json({
+      launches: result.launches,
+      total: result.total,
+      page: Math.floor(skip / limit) + 1,
+      limit: limit,
+    });
+  }
+
+  return res.status(200).json(result);
+};
+
+const httpGetUpcomingLaunches = async (req, res) => {
+  const { skip, limit } = getPagination(req.query);
+  const result = await getUpcomingLaunches(skip, limit);
 
   if (limit) {
     return res.status(200).json({
@@ -91,6 +109,7 @@ const httpAbortLaunch = async (req, res) => {
 module.exports = {
   httpGetAllLaunches,
   httpGetHistoryLaunches,
+  httpGetUpcomingLaunches,
   httpAddNewLaunch,
   httpAbortLaunch,
 };

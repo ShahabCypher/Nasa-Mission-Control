@@ -1,6 +1,15 @@
 import { useMemo } from "react";
-import { withStyles, Appear, Link, Paragraph, Table, Words } from "arwes";
-
+import {
+  withStyles,
+  Appear,
+  Link,
+  Paragraph,
+  Table,
+  Words,
+  Loading,
+} from "arwes";
+import { usePaginatedUpcoming } from "../hooks/useLaunches";
+import Pagination from "../components/Pagination";
 import Clickable from "../components/Clickable";
 
 const styles = () => ({
@@ -11,32 +20,33 @@ const styles = () => ({
 });
 
 const Upcoming = (props) => {
-  const { entered, launches, classes, abortLaunch } = props;
+  const { entered, classes } = props;
+
+  const { launches, page, totalPages, isLoading, goToPage, abortLaunch } =
+    usePaginatedUpcoming(null, null, 1, 8);
 
   const tableBody = useMemo(() => {
-    return launches
-      ?.filter((launch) => launch.upcoming)
-      .map((launch) => {
-        return (
-          <tr key={String(launch.flightNumber)}>
-            <td>
-              <Clickable style={{ color: "red" }}>
-                <Link
-                  className={classes.link}
-                  onClick={() => abortLaunch(launch.flightNumber)}
-                >
-                  ✖
-                </Link>
-              </Clickable>
-            </td>
-            <td>{launch.flightNumber}</td>
-            <td>{new Date(launch.launchDate).toDateString()}</td>
-            <td>{launch.mission}</td>
-            <td>{launch.rocket}</td>
-            <td>{launch.target}</td>
-          </tr>
-        );
-      });
+    return launches?.map((launch) => {
+      return (
+        <tr key={String(launch.flightNumber)}>
+          <td>
+            <Clickable style={{ color: "red" }}>
+              <Link
+                className={classes.link}
+                onClick={() => abortLaunch(launch.flightNumber)}
+              >
+                ✖
+              </Link>
+            </Clickable>
+          </td>
+          <td>{launch.flightNumber}</td>
+          <td>{new Date(launch.launchDate).toDateString()}</td>
+          <td>{launch.mission}</td>
+          <td>{launch.rocket}</td>
+          <td>{launch.target}</td>
+        </tr>
+      );
+    });
   }, [launches, abortLaunch, classes.link]);
 
   return (
@@ -46,21 +56,34 @@ const Upcoming = (props) => {
         Zero to Mastery rockets.
       </Paragraph>
       <Words animate>Warning! Clicking on the ✖ aborts the mission.</Words>
-      <Table animate show={entered}>
-        <table style={{ tableLayout: "fixed" }}>
-          <thead>
-            <tr>
-              <th style={{ width: "3rem" }}></th>
-              <th style={{ width: "3rem" }}>No.</th>
-              <th style={{ width: "10rem" }}>Date</th>
-              <th style={{ width: "11rem" }}>Mission</th>
-              <th style={{ width: "11rem" }}>Rocket</th>
-              <th>Destination</th>
-            </tr>
-          </thead>
-          <tbody>{tableBody}</tbody>
-        </table>
-      </Table>
+
+      {isLoading ? (
+        <Loading animate>Loading upcoming launches...</Loading>
+      ) : (
+        <>
+          <Table animate show={entered}>
+            <table style={{ tableLayout: "fixed" }}>
+              <thead>
+                <tr>
+                  <th style={{ width: "3rem" }}></th>
+                  <th style={{ width: "3rem" }}>No.</th>
+                  <th style={{ width: "10rem" }}>Date</th>
+                  <th style={{ width: "11rem" }}>Mission</th>
+                  <th style={{ width: "11rem" }}>Rocket</th>
+                  <th>Destination</th>
+                </tr>
+              </thead>
+              <tbody>{tableBody}</tbody>
+            </table>
+          </Table>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+          />
+        </>
+      )}
     </Appear>
   );
 };

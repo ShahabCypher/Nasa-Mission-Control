@@ -45,6 +45,21 @@ async function httpGetPaginatedHistory(page = 1, limit = 10) {
   return result;
 }
 
+// Load paginated upcoming launches (upcoming only)
+async function httpGetPaginatedUpcoming(page = 1, limit = 10) {
+  const response = await fetch(
+    `${API_URL}/launches/upcoming?page=${page}&limit=${limit}`
+  );
+  const result = await response.json();
+
+  // Sort the launches by flight number
+  if (result.launches) {
+    result.launches.sort((a, b) => a.flightNumber - b.flightNumber);
+  }
+
+  return result;
+}
+
 // Submit given launch data to launch system.
 async function httpSubmitLaunch(launch) {
   try {
@@ -81,6 +96,7 @@ export {
   httpGetLaunches,
   httpGetPaginatedLaunches,
   httpGetPaginatedHistory,
+  httpGetPaginatedUpcoming,
   httpSubmitLaunch,
   httpAbortLaunch,
 };

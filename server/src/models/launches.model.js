@@ -118,8 +118,26 @@ const getHistoryLaunches = async (skip, limit) => {
   return await query;
 };
 
+const getUpcomingLaunches = async (skip, limit) => {
+  const query = launchesDB
+    .find({ upcoming: true }, "-_id -__v")
+    .sort({ flightNumber: 1 });
+
+  if (limit) {
+    const launches = await query.skip(skip).limit(limit);
+    const total = await launchesDB.countDocuments({ upcoming: true });
+    return { launches, total };
+  }
+
+  return await query;
+};
+
 const getHistoryLaunchesCount = async () => {
   return await launchesDB.countDocuments({ upcoming: false });
+};
+
+const getUpcomingLaunchesCount = async () => {
+  return await launchesDB.countDocuments({ upcoming: true });
 };
 
 const scheduleNewLaunch = async (launch) => {
@@ -152,7 +170,9 @@ module.exports = {
   existsLaunchWithId,
   getAllLaunches,
   getHistoryLaunches,
+  getUpcomingLaunches,
   getHistoryLaunchesCount,
+  getUpcomingLaunchesCount,
   scheduleNewLaunch,
   abortLaunchById,
   loadLaunchData,

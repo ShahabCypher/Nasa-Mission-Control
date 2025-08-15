@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   httpGetLaunches,
   httpGetPaginatedHistory,
+  httpGetPaginatedUpcoming,
   httpSubmitLaunch,
   httpAbortLaunch,
 } from "./requests";
@@ -129,5 +130,82 @@ function usePaginatedHistory(onFailureSound, page = 1, limit = 10) {
   };
 }
 
+function usePaginatedUpcoming(
+  onFailureSound,
+  onAbortSound,
+  page = 1,
+  limit = 8
+) {
+  const [upcomingData, setUpcomingData] = useState({
+    launches: [],
+    total: 0,
+    page: 1,
+    limit: 8,
+    totalPages: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const getUpcomingLaunches = useCallback(
+    async (currentPage = page) => {
+      setIsLoading(true);
+      try {
+        const result = await httpGetPaginatedUpcoming(currentPage, limit);
+
+        if (result.launches) {
+          setUpcomingData({
+            launches: result.launches,
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+            totalPages: Math.ceil(result.total / result.limit),
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch upcoming launches:", error);
+        onFailureSound && onFailureSound();
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [page, limit, onFailureSound]
+  );
+
+  useEffect(() => {
+    getUpcomingLaunches();
+  }, [getUpcomingLaunches]);
+
+  const goToPage = useCallback(
+    (newPage) => {
+      if (newPage >= 1 && newPage <= upcomingData.totalPages) {
+        getUpcomingLaunches(newPage);
+      }
+    },
+    [getUpcomingLaunches, upcomingData.totalPages]
+  );
+
+  const abortLaunch = useCallback(
+    async (id) => {
+      const response = await httpAbortLaunch(id);
+
+      const success = response.ok;
+      if (success) {
+        getUpcomingLaunches(upcomingData.page);
+        onAbortSound && onAbortSound();
+      } else {
+        onFailureSound && onFailureSound();
+      }
+    },
+    [getUpcomingLaunches, upcomingData.page, onAbortSound, onFailureSound]
+  );
+
+  return {
+    ...upcomingData,
+    isLoading,
+    goToPage,
+    abortLaunch,
+    refresh: getUpcomingLaunches,
+  };
+}
+
 export default useLaunches;
-export { usePaginatedHistory };
+export { usePaginatedHistory, usePaginatedUpcoming };
