@@ -1,8 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 
-const planetsRouter = require("./routes/planets/planets.routes");
-const launchesRouter = require("./routes/launches/launches.routes");
+const api = require("./routes/api");
 
 const app = express();
 app.use(express.json());
@@ -12,7 +11,6 @@ app.use(
   })
 );
 
-app.use("/planets", planetsRouter);
-app.use("/launches", launchesRouter);
+app.use("/v1", api);
 
 module.exports = app;
