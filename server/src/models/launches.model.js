@@ -5,17 +5,6 @@ const planets = require("./planets.mongo");
 
 const DEFAULT_FLIGHT_NUMBER = 100;
 
-const launch = {
-  flightNumber: 100, //flight_number
-  mission: "Kepler Exploration X", //name
-  rocket: "Explorer IS1", //rocket.name
-  launchDate: new Date("December 27, 2030"), //date_local
-  target: "Kepler-442 b", //destination
-  customers: ["ZTM", "NASA"], //payload.customers
-  upcoming: true, //upcoming
-  success: true, //success
-};
-
 const saveLaunch = async (launch) => {
   await launchesDB.findOneAndUpdate(
     { flightNumber: launch.flightNumber },
@@ -23,8 +12,6 @@ const saveLaunch = async (launch) => {
     { upsert: true }
   );
 };
-
-saveLaunch(launch);
 
 const findLaunch = async (filter) => await launchesDB.findOne(filter);
 
@@ -105,7 +92,11 @@ const getLatestFlightNumber = async () => {
 };
 
 const getAllLaunches = async (skip, limit) =>
-  await launchesDB.find({}, "-_id -__v").skip(skip).limit(limit);
+  await launchesDB
+    .find({}, "-_id -__v")
+    .sort({ flightNumber: 1 })
+    .skip(skip)
+    .limit(limit);
 
 const scheduleNewLaunch = async (launch) => {
   const planet = await planets.findOne({ keplerName: launch.target });
