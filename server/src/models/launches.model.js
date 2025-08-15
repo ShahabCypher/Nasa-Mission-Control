@@ -104,7 +104,8 @@ const getLatestFlightNumber = async () => {
   return latestLaunch.flightNumber;
 };
 
-const getAllLaunches = async () => await launchesDB.find({}, "-_id -__v");
+const getAllLaunches = async (skip, limit) =>
+  await launchesDB.find({}, "-_id -__v").skip(skip).limit(limit);
 
 const scheduleNewLaunch = async (launch) => {
   const planet = await planets.findOne({ keplerName: launch.target });
