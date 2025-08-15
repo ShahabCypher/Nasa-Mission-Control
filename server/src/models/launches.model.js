@@ -91,12 +91,36 @@ const getLatestFlightNumber = async () => {
   return latestLaunch.flightNumber;
 };
 
-const getAllLaunches = async (skip, limit) =>
-  await launchesDB
-    .find({}, "-_id -__v")
-    .sort({ flightNumber: 1 })
-    .skip(skip)
-    .limit(limit);
+const getAllLaunches = async (skip, limit) => {
+  const query = launchesDB.find({}, "-_id -__v").sort({ flightNumber: 1 });
+
+  if (limit) {
+    const launches = await query.skip(skip).limit(limit);
+    const total = await launchesDB.countDocuments({});
+    return { launches, total };
+  }
+
+  // If no limit specified, return all launches (for backward compatibility)
+  return await query;
+};
+
+const getHistoryLaunches = async (skip, limit) => {
+  const query = launchesDB
+    .find({ upcoming: false }, "-_id -__v")
+    .sort({ flightNumber: 1 });
+
+  if (limit) {
+    const launches = await query.skip(skip).limit(limit);
+    const total = await launchesDB.countDocuments({ upcoming: false });
+    return { launches, total };
+  }
+
+  return await query;
+};
+
+const getHistoryLaunchesCount = async () => {
+  return await launchesDB.countDocuments({ upcoming: false });
+};
 
 const scheduleNewLaunch = async (launch) => {
   const planet = await planets.findOne({ keplerName: launch.target });
@@ -127,6 +151,8 @@ const abortLaunchById = async (launchId) => {
 module.exports = {
   existsLaunchWithId,
   getAllLaunches,
+  getHistoryLaunches,
+  getHistoryLaunchesCount,
   scheduleNewLaunch,
   abortLaunchById,
   loadLaunchData,

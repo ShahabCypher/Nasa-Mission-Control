@@ -1,5 +1,7 @@
 const {
   getAllLaunches,
+  getHistoryLaunches,
+  getHistoryLaunchesCount,
   scheduleNewLaunch,
   existsLaunchWithId,
   abortLaunchById,
@@ -9,8 +11,34 @@ const { getPagination } = require("../../services/query");
 
 const httpGetAllLaunches = async (req, res) => {
   const { skip, limit } = getPagination(req.query);
-  const launches = await getAllLaunches(skip, limit);
-  return res.status(200).json(launches);
+  const result = await getAllLaunches(skip, limit);
+
+  if (limit) {
+    return res.status(200).json({
+      launches: result.launches,
+      total: result.total,
+      page: Math.floor(skip / limit) + 1,
+      limit: limit,
+    });
+  }
+
+  return res.status(200).json(result);
+};
+
+const httpGetHistoryLaunches = async (req, res) => {
+  const { skip, limit } = getPagination(req.query);
+  const result = await getHistoryLaunches(skip, limit);
+
+  if (limit) {
+    return res.status(200).json({
+      launches: result.launches,
+      total: result.total,
+      page: Math.floor(skip / limit) + 1,
+      limit: limit,
+    });
+  }
+
+  return res.status(200).json(result);
 };
 
 const httpAddNewLaunch = async (req, res) => {
@@ -62,6 +90,7 @@ const httpAbortLaunch = async (req, res) => {
 
 module.exports = {
   httpGetAllLaunches,
+  httpGetHistoryLaunches,
   httpAddNewLaunch,
   httpAbortLaunch,
 };

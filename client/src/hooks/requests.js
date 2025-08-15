@@ -15,6 +15,36 @@ async function httpGetLaunches() {
   });
 }
 
+// Load paginated launches
+async function httpGetPaginatedLaunches(page = 1, limit = 10) {
+  const response = await fetch(
+    `${API_URL}/launches?page=${page}&limit=${limit}`
+  );
+  const result = await response.json();
+
+  // Sort the launches by flight number
+  if (result.launches) {
+    result.launches.sort((a, b) => a.flightNumber - b.flightNumber);
+  }
+
+  return result;
+}
+
+// Load paginated history launches (non-upcoming only)
+async function httpGetPaginatedHistory(page = 1, limit = 10) {
+  const response = await fetch(
+    `${API_URL}/launches/history?page=${page}&limit=${limit}`
+  );
+  const result = await response.json();
+
+  // Sort the launches by flight number
+  if (result.launches) {
+    result.launches.sort((a, b) => a.flightNumber - b.flightNumber);
+  }
+
+  return result;
+}
+
 // Submit given launch data to launch system.
 async function httpSubmitLaunch(launch) {
   try {
@@ -46,4 +76,11 @@ async function httpAbortLaunch(id) {
   }
 }
 
-export { httpGetPlanets, httpGetLaunches, httpSubmitLaunch, httpAbortLaunch };
+export {
+  httpGetPlanets,
+  httpGetLaunches,
+  httpGetPaginatedLaunches,
+  httpGetPaginatedHistory,
+  httpSubmitLaunch,
+  httpAbortLaunch,
+};
